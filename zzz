@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Трочин Вікторія">
+    <title>Vikysik Hub | Ultimate Smart Study Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* ДИНАМІЧНІ ЗМІННІ ТЕМ */
+        :root {
+            --bg-body: #020617; 
+            --bg-container: linear-gradient(180deg, #0f172a 0%, #020617 100%);
+            --text-main: #f1f1f1;
+            --text-header: #ffffff;
+            --text-sub: #94a3b8;
+            --card-bg: rgba(30, 41, 59, 0.4);
+            --accent: rgb(222, 26, 161); /* Рожевий акцент */
+            --active-glow: rgba(222, 26, 161, 0.6);
+            --border-ui: rgba(255, 255, 255, 0.1);
+            --nav-btn-bg: rgba(255, 255, 255, 0.05);
+        }
+
+        body.theme-light {
+            --bg-body: #e2e8f0;
+            --bg-container: linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%);
+            --text-main: #0f172a; 
+            --text-header: #000000; 
+            --text-sub: #475569;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --border-ui: rgba(0, 0, 0, 0.1);
+            --active-glow: rgba(222, 26, 161, 0.3);
+            --nav-btn-bg: rgba(0, 0, 0, 0.05);
+        }
+
+        body.theme-medium {
+            --bg-body: #1e293b;
+            --bg-container: linear-gradient(180deg, #334155 0%, #1e293b 100%);
+            --text-main: #f8fafc;
+            --text-header: #ffffff;
+            --text-sub: #cbd5e1;
+            --card-bg: rgba(15, 23, 42, 0.6);
+            --border-ui: rgba(255, 255, 255, 0.05);
+            --nav-btn-bg: rgba(255, 255, 255, 0.05);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            transition: all 0.4s ease;
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 550px;
+            background: var(--bg-container);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 0 100px rgba(0,0,0,0.8);
+            border-left: 1px solid var(--border-ui);
+            border-right: 1px solid var(--border-ui);
+            z-index: 2;
+        }
+
+        /* UI ЕЛЕМЕНТИ */
+        .header {
+            padding: 15px 20px;
+            background: rgba(15, 23, 42, 0.1);
+            border-bottom: 3px solid var(--accent);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(25px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 95px;
+        }
+
+        .status-widget {
+            background: rgba(0,0,0,0.1);
+            padding: 8px 12px;
+            border-radius: 12px;
+            border: 1px solid var(--accent);
+            max-width: 180px;
+            cursor: pointer;
+        }
+
+        .date-nav {
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between;
+            padding: 15px 20px; 
+            background: rgba(0,0,0,0.05); 
+            margin: 15px;
+            border-radius: 20px; 
+            border: 1px solid var(--border-ui);
+        }
+
+        .nav-arrow {
+            width: 46px; height: 46px; 
+            display: flex; align-items: center; justify-content: center;
+            background: var(--card-bg); border-radius: 14px; 
+            color: var(--accent); cursor: pointer; transition: 0.3s;
+            border: 1px solid var(--border-ui);
+        }
+        .nav-arrow:hover { background: var(--accent); color: #000; }
+
+        .pair-card {
+            background: var(--card-bg); margin: 0 15px 15px; border-radius: 26px; padding: 25px;
+            border: 1px solid var(--border-ui); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            position: relative; border-left-width: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .pair-card.is-current {
+            background: var(--card-bg); 
+            z-index: 10; 
+            border: 4px solid var(--accent);
+            border-left-width: 12px;
+            transform: scale(1.025); 
+            box-shadow: 0 0 50px var(--active-glow), inset 0 0 10px var(--active-glow);
+        }
+
+        .pair-card.is-upcoming { border: 2.5px dashed var(--accent); border-left-width: 12px; opacity: 0.85; }
+
+        .subject-title {
+            color: var(--text-header);
+            font-size: 1.4rem;
+            font-weight: 900;
+            line-height: 1.2;
+            margin-bottom: 0.8rem;
+        }
+
+        .status-tag {
+            position: absolute; top: 15px; right: 15px; background: var(--accent); color: #000;
+            font-size: 0.65rem; font-weight: 900; padding: 5px 14px; border-radius: 50px;
+        }
+
+        .progress-bar-inner { width: 100%; height: 8px; background: rgba(0,0,0,0.05); border-radius: 10px; margin-top: 15px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--accent); transition: width 0.5s ease; }
+        .timer-text { display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 800; color: var(--accent); margin-top: 8px; }
+
+        .join-group { display: flex; gap: 10px; margin-top: 20px; }
+        .join-btn {
+            flex: 1; background: var(--accent); color: #000 !important; display: block; text-align: center; padding: 16px;
+            border-radius: 14px; font-weight: 900; font-size: 0.95rem; transition: 0.3s;
+            text-decoration: none; text-transform: uppercase;
+        }
+        .copy-btn {
+            width: 55px; background: var(--nav-btn-bg); border: 1px solid var(--border-ui);
+            border-radius: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s;
+        }
+
+        .lecturer-box { 
+            background: rgba(0,0,0,0.05); padding: 15px; border-radius: 18px; 
+            border: 1px solid var(--border-ui); margin-top: 15px; 
+        }
+
+        .access-info {
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 0.75rem;
+            margin-top: 8px;
+            font-weight: 700;
+            background: rgba(0,0,0,0.1);
+            padding: 5px 10px;
+            border-radius: 8px;
+            display: inline-block;
+            color: var(--text-main);
+        }
+
+        .weekend-card {
+            margin: 20px; padding: 80px 20px; text-align: center;
+            background: var(--card-bg); border: 3px dashed var(--accent); border-radius: 40px;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .weekend-title { font-size: 4rem; font-weight: 900; color: var(--accent); text-transform: uppercase; line-height: 1; }
+        .weekend-btn { 
+            background: var(--accent); color: #000; padding: 20px 50px; border-radius: 18px; 
+            font-weight: 900; margin-top: 40px; text-transform: uppercase; cursor: pointer;
+            box-shadow: 0 10px 30px var(--active-glow); transition: 0.3s;
+        }
+
+        /* SETTINGS MODAL */
+        #settings-modal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.95); backdrop-filter: blur(15px);
+            z-index: 1000; display: none; align-items: center; justify-content: center; padding: 20px;
+        }
+        .modal-content {
+            background: #1e293b; width: 100%; max-width: 500px; padding: 30px;
+            border-radius: 35px; border: 2px solid var(--accent); max-height: 90vh; overflow-y: auto; color: white;
+        }
+        .setting-label { font-size: 0.75rem; font-weight: 800; color: var(--accent); text-transform: uppercase; margin: 20px 0 6px; display: block; }
+        .option-btn { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; font-size: 0.7rem; font-weight: 700; text-align: center; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
+        .option-btn.active { background: var(--accent); color: #000; border-color: white; }
+
+        .sub-color-row {
+            display: flex; align-items: center; justify-content: space-between;
+            background: rgba(255,255,255,0.03); padding: 10px; border-radius: 12px; margin-bottom: 6px;
+        }
+
+        .jump-container { position: fixed; bottom: 30px; right: 20px; display: flex; align-items: center; gap: 10px; z-index: 150; }
+        .back-jump-btn { background: var(--card-bg); color: var(--text-main); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid var(--border-ui); transition: 0.3s; }
+        .quick-jump-btn { background: var(--accent); color: #000; padding: 20px 40px; border-radius: 45px; font-weight: 900; box-shadow: 0 10px 40px var(--active-glow); cursor: pointer; border: 4px solid rgba(255,255,255,0.3); text-transform: uppercase; }
+
+        #bg-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; opacity: 0.3; }
+        
+        #alert-toast {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 3000;
+            background: white; color: black; padding: 15px 30px; border-radius: 20px;
+            font-weight: 800; box-shadow: 0 20px 50px rgba(0,0,0,0.5); display: none;
+        }
+        
+        .accent-text { color: var(--accent); }
+    </style>
+</head>
+<body id="main-body" class="theme-dark">
+
+    <canvas id="bg-canvas"></canvas>
+    
+    <div id="alert-toast">Посилання скопійовано!</div>
+
+    <div class="jump-container">
+        <button class="back-jump-btn" onclick="handlePreviousJump()" title="Попередній день">
+            <svg width="26" height="26" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M12.5 15a.5.5 0 0 1-.5-.5v-13a.5.5 0 0 1 1 0v13a.5.5 0 0 1-.5.5zM10 8L2.854 12.854A.5.5 0 0 1 2 12.5V3.5a.5.5 0 0 1 .854-.354L10 8z"/></svg>
+        </button>
+        <button class="quick-jump-btn" onclick="handleMasterJump()">НА ПАРУ ⚡</button>
+    </div>
+
+    <div class="app-container" id="main-app">
+        <header class="header">
+            <div class="flex-1">
+                <h1 class="text-xl font-black tracking-tight italic uppercase text-white">Vikysik_Hub</h1>
+                <div class="status-widget mt-1" onclick="handleMasterJump()">
+                    <div id="widget-label" class="text-[0.55rem] uppercase font-bold opacity-50 tracking-widest text-blue-300">Статус:</div>
+                    <div id="widget-name" class="text-[0.7rem] font-black truncate text-white">Завантаження...</div>
+                </div>
+            </div>
+            <div class="text-right mr-4">
+                <div id="live-clock" class="text-lg font-black text-white tracking-widest">00:00:00</div>
+                <div class="text-[0.5rem] opacity-40 uppercase font-bold text-white">Реальний час</div>
+            </div>
+            <button onclick="openSettings()" class="bg-white/5 p-3 rounded-2xl border border-white/10 flex items-center justify-center transition hover:bg-white/10">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            </button>
+        </header>
+
+        <div class="date-nav">
+            <div class="nav-arrow" onclick="changeDate(-1)"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg></div>
+            <div class="text-center">
+                <div id="display-date" class="text-xl font-black"></div>
+                <div id="display-day" class="text-[0.75rem] opacity-60 uppercase font-bold tracking-widest mt-1"></div>
+                <div id="total-pairs" class="text-[0.65rem] font-black accent-text uppercase tracking-tighter mt-1"></div>
+            </div>
+            <div class="nav-arrow" onclick="changeDate(1)"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></div>
+        </div>
+
+        <main id="schedule-container" class="flex-grow pb-40">
+            <!-- Тут рендериться розклад -->
+        </main>
+
+        <footer class="p-12 opacity-20 text-[0.65rem] text-center uppercase tracking-widest leading-loose">
+            University Archive System <br> <span class="font-black">Vikysik Edition 2026</span>
+        </footer>
+    </div>
+
+    <!-- Налаштування -->
+    <div id="settings-modal" onclick="closeSettings()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h2 class="text-xl font-black mb-6 text-center uppercase tracking-tighter">Налаштування</h2>
+            
+            <label class="setting-label">Тема Інтерфейсу</label>
+            <div class="option-grid grid grid-cols-3 gap-2">
+                <div class="option-btn" id="theme-dark" onclick="setAppTheme('dark')">Темна</div>
+                <div class="option-btn" id="theme-medium" onclick="setAppTheme('medium')">Modern</div>
+                <div class="option-btn" id="theme-light" onclick="setAppTheme('light')">М'яка</div>
+            </div>
+
+            <label class="setting-label">Акцентний колір</label>
+            <input type="color" id="accent-picker" oninput="setAccent(this.value)" class="w-full h-12 border-0 bg-transparent cursor-pointer rounded-xl mb-4">
+
+            <label class="setting-label">Кольори Предметів</label>
+            <div id="sub-colors-config" class="space-y-2 max-h-40 overflow-y-auto mb-4 p-2 bg-black/20 rounded-xl"></div>
+
+            <label class="setting-label">Ефекти Фону</label>
+            <div class="option-grid grid grid-cols-3 gap-2">
+                <div class="option-btn" id="anim-particles" onclick="setAnim('particles')">Points</div>
+                <div class="option-btn" id="anim-nexus" onclick="setAnim('nexus')">Nexus</div>
+                <div class="option-btn" id="anim-fire" onclick="setAnim('fire')">Fire</div>
+                <div class="option-btn" id="anim-digital" onclick="setAnim('digital')">Digital</div>
+                <div class="option-btn" id="anim-waves" onclick="setAnim('waves')">Waves</div>
+                <div class="option-btn" id="anim-aurora" onclick="setAnim('aurora')">Aurora</div>
+                <div class="option-btn" id="anim-snow" onclick="setAnim('snow')">Snow</div>
+                <div class="option-btn" id="anim-stars" onclick="setAnim('stars')">Stars</div>
+                <div class="option-btn" id="anim-rain" onclick="setAnim('rain')">Rain</div>
+                <div class="option-btn" id="anim-grid" onclick="setAnim('grid')">Grid</div>
+                <div class="option-btn" id="anim-hearts" onclick="setAnim('hearts')">💖 Hearts</div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 mt-4">
+                <div class="option-btn" id="glow-test-btn" onclick="toggleGlowTest()">Тест Світіння ⚡</div>
+                <div class="option-btn" id="anim-off" onclick="setAnim('off')">Off Анімація</div>
+            </div>
+
+            <button onclick="closeSettings()" class="w-full mt-8 py-4 bg-white/10 rounded-2xl font-black uppercase text-sm">Зберегти</button>
+        </div>
+    </div>
+
+    <script>
+        // --- ДАНІ ВИКЛАДАЧІВ (ОНОВЛЕНО НА 2 СЕМЕСТР) ---
+        const lecturers = {
+            masina: { 
+                id: "masina", 
+                name: "Масіна Людмила Олександрівна", 
+                sub: "Теорія бухгалтерського обліку", 
+                zoom: "468 524 1467", 
+                pass: "9ydxMa", 
+                link: "https://us04web.zoom.us/j/4685241467?pwd=TDcxQ1lLWlMvZW9LaGoxTmQ5eWdoZz09", 
+                color: "#10b981" 
+            },
+            kryuchkova: { 
+                id: "kryuchkova", 
+                name: "Крючкова Наталія Михайлівна", 
+                sub: "Макроекономіка", 
+                zoom: "4923035072", 
+                pass: "2021", 
+                link: "https://us02web.zoom.us/j/4923035072?pwd=bFhtOXdjYU5DUGhYZUhCclVjNnJ2Zz09", 
+                color: "#3b82f6" 
+            },
+            osadchuk: { 
+                id: "osadchuk", 
+                name: "Осадчук Світлана Вікторівна", 
+                sub: "Теорія податків та мита", 
+                link: "https://meet.google.com/zra-poie-rzt", 
+                color: "rgb(200, 9, 193)" 
+            },
+            dobrova: { 
+                id: "dobrova", 
+                name: "Доброва Тетяна Георгіївна", 
+                sub: "Мікроекономіка", 
+                zoom: "7541284127", 
+                pass: "200767", 
+                link: "https://us02web.zoom.us/j/7541284127?pwd=T242b2IvVk50eGNUNnNhSVR0andrdz09&omn=81648416033", 
+                color: "#8b5cf6" 
+            },
+            rudik: { 
+                id: "rudik", 
+                name: "Рудік Ірина Валеріївна", 
+                sub: "Іноземна мова", 
+                zoom: "3682427003", 
+                pass: "284535", 
+                link: "https://us02web.zoom.us/j/3682427003?pwd=EpbBP4rhqXXRaJaQ2IiH6LLb429Txn.1", 
+                color: "#f43f5e" 
+            },
+            ogarenko: { 
+                id: "ogarenko", 
+                name: "Огаренко Євгеній Сергійович", 
+                sub: "Філософія", 
+                zoom: "77055599522", 
+                pass: "Е9Е8F6", 
+                link: "https://us04web.zoom.us/j/77055599522?pwd=UlVjZjlYVHVjRUxONmNwQ1NUdVFrZz09", 
+                color: "#ec4899" 
+            },
+            vasylevska: { 
+                id: "vasylevska", 
+                name: "Василевська Надія Станіславівна", 
+                sub: "Захист персональних даних", 
+                zoom: "832 3587 1537", 
+                pass: "932944", 
+                link: "https://us02web.zoom.us/j/83235871537?pwd=kG3cEB8LTI78aStf6KLXCDJvIi7LtY.1", 
+                color: "#06b6d4" 
+            },
+            vakalyuk: {
+                id: "vakalyuk",
+                name: "Вакалюк Олена Віталіївна",
+                sub: "Макроекономіка (Семінар)",
+                zoom: "9141306193",
+                pass: "2025",
+                link: "https://zoom.us/j/9141306193?pwd=Y3JjeHNrSXRtZzNVbThMekZGYlBVZz09",
+                color: "#f97316"
+            },
+            self: {
+                id: "self_study",
+                name: "Студент",
+                sub: "Самостійна підготовка",
+                link: "#",
+                color: "#64748b"
+            }
+        };
+
+        const timeSlots = [
+            { n: 1, sM: 480, eM: 560, sT: "08:00", eT: "09:20" },
+            { n: 2, sM: 570, eM: 650, sT: "09:30", eT: "10:50" },
+            { n: 3, sM: 680, eM: 760, sT: "11:20", eT: "12:40" },
+            { n: 4, sM: 770, eM: 850, sT: "12:50", eT: "14:10" }
+        ];
+
+        // ОНОВЛЕНИЙ РОЗКЛАД
+        const schedule = {
+            odd: {
+                1: [{n:2,...lecturers.vakalyuk},{n:3,...lecturers.masina},{n:4,...lecturers.kryuchkova}],
+                2: [{n:1, sub:"Семінар: Податки", ...lecturers.osadchuk, id:"sem_tax"},{n:2,...lecturers.osadchuk},{n:3, sub:"Семінар: Бух. облік", ...lecturers.masina, id:"sem_buh"}],
+                3: [{n:1,...lecturers.dobrova},{n:2, sub:"Семінар: Мікроекономіка", ...lecturers.dobrova, id:"sem_micro"},{n:3,...lecturers.vasylevska}],
+                4: [{n:2,...lecturers.rudik},{n:3, sub:"Семінар: Філософія", ...lecturers.ogarenko, id:"sem_phil"},{n:4, sub:"Семінар: Бух. облік", ...lecturers.masina, id:"sem_buh"}],
+                5: [{n:2,...lecturers.self}]
+            },
+            even: {
+                1: [{n:2,...lecturers.vakalyuk},{n:3,...lecturers.masina},{n:4,...lecturers.dobrova}],
+                2: [{n:1, sub:"Семінар: Податки", ...lecturers.osadchuk, id:"sem_tax"},{n:2,...lecturers.osadchuk}],
+                3: [{n:1,...lecturers.dobrova},{n:2, sub:"Семінар: Мікроекономіка", ...lecturers.dobrova, id:"sem_micro"},{n:3,...lecturers.vasylevska},{n:4, sub:"Семінар: Податки", ...lecturers.osadchuk, id:"sem_tax"}],
+                4: [{n:2,...lecturers.rudik},{n:3,...lecturers.ogarenko},{n:4, sub:"Семінар: Бух. облік", ...lecturers.masina, id:"sem_buh"}],
+                5: [{n:2,...lecturers.self}]
+            }
+        };
+
+        let viewDate = new Date();
+        let animMode = localStorage.getItem('hub-anim') || 'hearts';
+        let appTheme = localStorage.getItem('hub-app-theme') || 'dark';
+        let config = { theme: localStorage.getItem('hub-theme') || 'rgb(222, 26, 161)' };
+        let isGlowTest = false;
+        const daysUa = ["Неділя", "Понеділок", "Вівторок", "Середа", "Четвер", "П'ятниця", "Субота"];
+
+        // --- ФУНКЦІЇ ЯДРА ---
+        function getWeekParity(date) {
+            // Базова дата семестру - 23 березня 2026 (Понеділок, непарний)
+            const refDate = new Date(2026, 2, 23); 
+            const diff = Math.floor((date - refDate) / (1000 * 60 * 60 * 24 * 7));
+            return (Math.abs(diff) % 2 === 0) ? 'odd' : 'even';
+        }
+
+        function render() {
+            const container = document.getElementById('schedule-container');
+            const dateTitle = document.getElementById('display-date');
+            const dayTitle = document.getElementById('display-day');
+            const totalPairsEl = document.getElementById('total-pairs');
+            if (!container || !dateTitle || !dayTitle || !totalPairsEl) return;
+
+            const dayIdx = viewDate.getDay();
+            const parity = getWeekParity(viewDate);
+            const isToday = new Date().toDateString() === viewDate.toDateString();
+            
+            dateTitle.innerText = viewDate.toLocaleDateString('uk-UA', { day: 'numeric', month: 'long' });
+            dayTitle.innerText = daysUa[dayIdx] + (dayIdx > 0 && dayIdx < 6 ? ` (${parity === 'odd' ? 'Непарний' : 'Парний'})` : "");
+
+            container.innerHTML = '';
+            const dayData = schedule[parity][dayIdx] || [];
+            const now = new Date();
+            const curM = now.getHours() * 60 + now.getMinutes();
+
+            totalPairsEl.innerText = dayData.length > 0 ? `Всього пар: ${dayData.length}` : "";
+
+            let activeIdx = dayData.findIndex(p => isToday && curM >= timeSlots[p.n-1].sM && curM <= timeSlots[p.n-1].eM);
+            let upcomingIdx = isToday ? dayData.findIndex(p => curM < timeSlots[p.n-1].sM) : -1;
+
+            if (isGlowTest && dayData.length > 0) activeIdx = 0;
+
+            updateWidget(dayData, activeIdx, upcomingIdx, isToday);
+
+            if (dayData.length === 0) {
+                container.innerHTML = `<div class="weekend-card"><div class="text-7xl">🍹</div><div class="weekend-title">Вихідний</div><button class="weekend-btn" onclick="goToMonday()">До понеділка 📅</button></div>`;
+            } else {
+                dayData.forEach((pair, idx) => {
+                    const slot = timeSlots[pair.n - 1];
+                    const active = isGlowTest || (idx === activeIdx);
+                    const next = !isGlowTest && (activeIdx === -1 && idx === upcomingIdx);
+                    const savedColor = localStorage.getItem(`sub-color-${pair.id}`) || pair.color;
+
+                    let extra = '';
+                    if (active) {
+                        const passed = isGlowTest ? 40 : (curM - slot.sM);
+                        const total = (slot.eM - slot.sM);
+                        const pct = Math.min(Math.max((passed / total) * 100, 0), 100);
+                        extra = `<div class="progress-bar-inner"><div class="progress-fill" style="width: ${pct}%; background-color: ${savedColor}; box-shadow: 0 0 10px ${savedColor}"></div></div>
+                                 <div class="timer-text" style="color: ${savedColor}"><span>Пройшло: ${passed} хв</span><span>Залишилось: ${total-passed} хв</span></div>`;
+                    }
+
+                    const card = document.createElement('div');
+                    card.className = `pair-card ${active ? 'is-current' : ''} ${next ? 'is-upcoming' : ''}`;
+                    card.style.borderLeftColor = savedColor;
+                    if (active) {
+                        card.id = 'target-card';
+                        card.style.setProperty('--active-glow', savedColor.includes('rgb') ? savedColor.replace('rgb', 'rgba').replace(')', ', 0.6)') : savedColor + '99');
+                    }
+
+                    card.innerHTML = `
+                        ${active ? `<span class="status-tag" style="background:${savedColor}">LIVE</span>` : ''}
+                        ${next ? '<span class="status-tag">NEXT</span>' : ''}
+                        <div class="text-[0.7rem] font-extrabold opacity-60 uppercase mb-1">Пара №${pair.n}</div>
+                        <div class="text-sm font-bold opacity-60 mb-2">${slot.sT} — ${slot.eT}</div>
+                        <div class="subject-title text-white">${pair.sub} ${pair.id.includes('sem') ? '<span class="text-xs opacity-50">(Семінар)</span>' : ''}</div>
+                        ${extra}
+                        <div class="lecturer-box">
+                            <div class="text-xs font-black mb-1 text-white">${pair.name}</div>
+                            ${pair.zoom ? `<div class="access-info">ID: ${pair.zoom} • Pass: ${pair.pass}</div>` : ''}
+                        </div>
+                        <div class="join-group">
+                            <a href="${pair.link}" target="_blank" class="join-btn" style="background:${savedColor}">${pair.id === 'self_study' ? 'Матеріали' : 'Увійти'}</a>
+                            <button class="copy-btn" onclick="copyToClipboard('${pair.link}')">
+                                <svg width="22" height="22" fill="${savedColor}" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/><path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3z"/></svg>
+                            </button>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            }
+        }
+
+        function updateWidget(data, aIdx, uIdx, today) {
+            const name = document.getElementById('widget-name');
+            const label = document.getElementById('widget-label');
+            if(!name || !label) return;
+            if(isGlowTest) { label.innerText = "ТЕСТ:"; name.innerText = "Світіння предметів"; return; }
+            if(!today) { label.innerText = "День:"; name.innerText = daysUa[viewDate.getDay()]; return; }
+            if(aIdx !== -1) { label.innerText = "Зараз:"; name.innerText = data[aIdx].sub; } 
+            else if(uIdx !== -1) { label.innerText = "Наступна:"; name.innerText = data[uIdx].sub; } 
+            else { label.innerText = "Статус:"; name.innerText = "Пар немає"; }
+        }
+
+        function toggleGlowTest() {
+            isGlowTest = true; render();
+            setTimeout(() => { isGlowTest = false; render(); }, 8000);
+        }
+
+        function copyToClipboard(text) {
+            const el = document.createElement('textarea');
+            el.value = text; document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el);
+            const t = document.getElementById('alert-toast'); t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 2000);
+        }
+
+        function goToMonday() {
+            const day = viewDate.getDay();
+            let addDays = (day === 5) ? 3 : (day === 6 ? 2 : 1);
+            viewDate.setDate(viewDate.getDate() + addDays); render();
+        }
+
+        function handleMasterJump() {
+            viewDate = new Date(); render();
+            setTimeout(() => { document.getElementById('target-card')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
+        }
+
+        function handlePreviousJump() { viewDate.setDate(viewDate.getDate() - 1); render(); }
+        function changeDate(dir) { viewDate.setDate(viewDate.getDate() + dir); render(); }
+        
+        function openSettings() { 
+            genSubColorSettings(); 
+            updateSettingsUI(); 
+            document.getElementById('settings-modal').style.display = 'flex'; 
+        }
+        function closeSettings() { document.getElementById('settings-modal').style.display = 'none'; }
+        
+        function setAccent(color) { 
+            config.theme = color; 
+            document.documentElement.style.setProperty('--accent', color); 
+            const glow = color.includes('rgb') ? color.replace('rgb', 'rgba').replace(')', ', 0.6)') : color + '80';
+            document.documentElement.style.setProperty('--active-glow', glow); 
+            localStorage.setItem('hub-theme', color); 
+            render(); 
+        }
+
+        function setAppTheme(t) {
+            appTheme = t; localStorage.setItem('hub-app-theme', t);
+            document.body.className = (t === 'dark') ? 'theme-dark' : 'theme-' + t;
+            updateSettingsUI(); render();
+        }
+
+        function setAnim(mode) { animMode = mode; localStorage.setItem('hub-anim', mode); updateSettingsUI(); initC(); }
+
+        function genSubColorSettings() {
+            const container = document.getElementById('sub-colors-config');
+            if(!container) return;
+            container.innerHTML = '';
+            const uniqueSubs = {};
+            // Об'єднуємо предмети для налаштувань кольору
+            const allItems = [...Object.values(lecturers)];
+            allItems.forEach(l => { if(!uniqueSubs[l.id]) uniqueSubs[l.id] = l; });
+            
+            Object.values(uniqueSubs).forEach(l => {
+                const row = document.createElement('div');
+                row.className = 'sub-color-row';
+                const color = localStorage.getItem(`sub-color-${l.id}`) || l.color;
+                row.innerHTML = `<span class="text-[0.7rem] font-bold truncate pr-2 text-white">${l.sub}</span><input type="color" value="${color}" oninput="localStorage.setItem('sub-color-${l.id}', this.value); render();" style="width:28px;height:28px;border:none;background:none;cursor:pointer;">`;
+                container.appendChild(row);
+            });
+        }
+
+        function updateSettingsUI() {
+            document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('active'));
+            if(document.getElementById('anim-' + animMode)) document.getElementById('anim-' + animMode).classList.add('active');
+            if(document.getElementById('theme-' + appTheme)) document.getElementById('theme-' + appTheme).classList.add('active');
+        }
+
+        function updateClock() { document.getElementById('live-clock').innerText = new Date().toLocaleTimeString('uk-UA'); }
+        setInterval(updateClock, 1000);
+
+        // --- CANVAS ENGINE ---
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let pts = [];
+        function initC() {
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+            pts = [];
+            for (let i = 0; i < 90; i++) pts.push({ x: Math.random()*canvas.width, y: Math.random()*canvas.height, s: Math.random()*3+0.5, v: Math.random()*0.8+0.1 });
+        }
+        function animateC() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (animMode === 'off') return requestAnimationFrame(animateC);
+            ctx.fillStyle = config.theme;
+            pts.forEach((p, i) => {
+                if (animMode === 'particles') { p.y -= p.v; if (p.y < 0) p.y = canvas.height; ctx.beginPath(); ctx.arc(p.x, p.y, p.s, 0, Math.PI * 2); ctx.fill(); } 
+                else if (animMode === 'fire') { p.y -= p.v*3; p.x += Math.sin(Date.now()*0.005+i); if(p.y<-20){ p.y=canvas.height+20; p.x=Math.random()*canvas.width; } ctx.shadowBlur=15; ctx.shadowColor=config.theme; ctx.beginPath(); ctx.arc(p.x,p.y,Math.random()*3+1,0,Math.PI*2); ctx.fill(); ctx.shadowBlur=0; }
+                else if (animMode === 'hearts') { p.y -= p.v; if (p.y < -40) p.y = canvas.height + 40; ctx.font = `${p.s * 15}px serif`; ctx.fillText('❤️', p.x, p.y); }
+                else if (animMode === 'digital') { let lineH = Math.random()*50+20; p.y += p.v*10; if(p.y > canvas.height) p.y = -lineH; ctx.globalAlpha = 0.3; ctx.fillRect(p.x, p.y, 2, lineH); ctx.globalAlpha = 1; }
+                else if (animMode === 'waves') { ctx.beginPath(); for(let x=0; x<canvas.width; x+=40){ let y = p.y + Math.sin(x*0.01 + Date.now()*0.002 + i)*30; ctx.lineTo(x, y); } ctx.globalAlpha = 0.2; ctx.stroke(); ctx.globalAlpha = 1; }
+                else if (animMode === 'snow') { p.y += p.v*2; if(p.y > canvas.height) p.y = -10; ctx.beginPath(); ctx.arc(p.x, p.y, p.s, 0, Math.PI*2); ctx.fillStyle = 'white'; ctx.fill(); }
+                else if (animMode === 'stars') { ctx.beginPath(); ctx.arc(p.x, p.y, p.s/2, 0, Math.PI*2); ctx.fill(); }
+                else if (animMode === 'nexus') { ctx.beginPath(); ctx.arc(p.x, p.y, 1, 0, Math.PI*2); ctx.fill(); }
+                else { ctx.beginPath(); ctx.arc(p.x, p.y, p.s, 0, Math.PI*2); ctx.fill(); }
+            });
+            requestAnimationFrame(animateC);
+        }
+        window.onresize = initC;
+        window.onload = () => { 
+            setAppTheme(appTheme); 
+            setAccent(config.theme); 
+            setAnim(animMode); 
+            initC(); 
+            animateC(); 
+            render(); 
+            updateClock(); 
+        };
+    </script>
+</body>
+</html> 
